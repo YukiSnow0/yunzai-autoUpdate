@@ -1,0 +1,11 @@
+{
+  "name": "yunzai-autoupdate",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TRSS-Yunzai 每日更新本体及全部 Git 插件，私聊推送主人",
+  "license": "MIT",
+  "engines": { "node": ">=24" },
+  "scripts": { "test": "node --test", "check": "node --check index.js" },
+  "peerDependencies": { "node-schedule": "^2.1.1" }
+}

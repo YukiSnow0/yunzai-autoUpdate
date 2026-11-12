@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "cron": "0 0 4 * * *",
+  "timezone": "Asia/Shanghai",
+  "autoRestart": true,
+  "masters": [],
+  "botId": "",
+  "timeoutSeconds": 180,
+  "installTimeoutSeconds": 600,
+  "maxCommits": 5
+}
