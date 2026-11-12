@@ -102,3 +102,32 @@ test('没有配置主人时保留报告，后续配置后可补发', async t => 
 test('长报告分段，不截断 Unicode 字符', () => {
   assert.deepEqual(splitMessage('😀😀😀', 2), ['😀😀', '😀']);
 });
+
+test('QQ 接口不返回时任务也会超时结束，保留报告等待补发', async t => {
+  const { service } = await setup(t, {
+    config: { timezone: 'Asia/Shanghai', autoRestart: false },
+    send: () => new Promise(() => {}), sendTimeoutMs: 25,
+  });
+  await service.run();
+  assert.deepEqual(service.state.pendingOwners, ['100000001']);
+  assert.equal(service.running, null);
+});
+
+test('旧报告的异步回执不能清除后来生成的新报告', async t => {
+  const { service } = await setup(t, {
+    config: { timezone: 'Asia/Shanghai', autoRestart: false },
+    targets: () => [{ qq: '100000001', botIds: [] }],
+  });
+  await service.run();
+  const started = Promise.withResolvers();
+  const release = Promise.withResolvers();
+  service.targets = () => [{ qq: '100000001', botIds: ['100000002'] }];
+  service.send = () => { started.resolve(); return release.promise; };
+  const oldFlush = service.flush(); await started.promise;
+  service.state.report = { ...service.state.report, time: '2026-11-14T20:00:00Z' };
+  service.state.pendingOwners = ['100000001'];
+  release.resolve({ message_id: 'old-report' }); await oldFlush;
+  assert.deepEqual(service.state.pendingOwners, ['100000001']);
+  service.send = async () => ({ message_id: 'new-report' });
+  await service.flush(); assert.deepEqual(service.state.pendingOwners, []);
+});
